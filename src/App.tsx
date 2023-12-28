@@ -74,62 +74,50 @@ const App: React.FC = () => {
       console.error('Error accessing microphone:', error);
     }
   };
-
+  
   const handleStop = async () => {
+    console.log('ARISvoiceAPI response:');
     if (recording) {
       recording.stop();
       setRecording(null);
       setIsMicClicked(false);
-  
+      console.log('ARISvoiceAPI response:1');
       try {
-        const audioBlob = await getAudioBlob();
+        const audioBlob = await getAudioBlob(recording); // Assuming this function gets the Blob data correctly
         if (audioBlob) {
-          // Convert the recorded audio blob to binary file
-          const binaryFile = await convertBlobToBinaryFile(audioBlob);
-  
-          // Send the binary file to the ARISvoiceAPI
+          console.log('ARISvoiceAPI response:2', audioBlob);
           const formData = new FormData();
-          formData.append('audio_file', binaryFile);
-  
-          const response = await axios.post(
-            `http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`,
-            formData,
-            {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
+          formData.append('audio_file', audioBlob, 'audio.wav'); // Appending the audio Blob with the file name
+          
+          const url = `http://localhost:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`;
+          const response = await axios.post(url, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'accept': 'application/json'
             }
-          );
+          });
   
-          // Handle the API response as needed
-          console.log('ARISvoiceAPI response:', response.data.response);
-  
-          // If you want to add the bot's response to the chat after processing the audio, you can do something like this:
-          if (response.data.botResponse) {
-            addBotMessage(response.data.botResponse, response.data.botAudioBlob);
-          }
+          console.log('ARISvoiceAPI response:', response.data);
         }
       } catch (error) {
+        console.log('ARISvoiceAPI response:4');
         console.error('Error handling audio:', error);
       }
     }
   };
   
-  const getAudioBlob = (): Promise<Blob | null> => {
+  const getAudioBlob = (recordedData: ArrayBuffer): Promise<Blob> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as ArrayBuffer;
-        const audioBlob = new Blob([result], { type: 'audio/wav' });
+      if (recordedData) {
+        const audioBlob = new Blob([recordedData], { type: 'audio/wav' });
         resolve(audioBlob);
-      };
-      reader.onerror = (error) => {
-        reject(error);
-      };
-      reader.readAsArrayBuffer(audioBlob!);
+      } else {
+        reject(new Error('No audio data available'));
+      }
     });
   };
   
+
   const convertBlobToBinaryFile = (blob: Blob): Promise<File> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -314,7 +302,7 @@ const App: React.FC = () => {
             <img className="pop-out-image" style={{ width: '200px', height: '200px' }} src={imageSrc1} alt="SurePeople Logo" />
           </div>
         )}
-        <div className="chat-container">
+        <div className="chat-container" style={{paddingTop:"80px"}}>
           {chatMessages.map((message, index) => (
             <div key={index} className={`message ${message.user ? 'user-message' : 'bot-message'}`}>
               {message.user && (
