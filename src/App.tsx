@@ -74,60 +74,14 @@ const App: React.FC = () => {
       console.error('Error accessing microphone:', error);
     }
   };
-  
+
   const handleStop = async () => {
-    console.log('ARISvoiceAPI response:');
     if (recording) {
       recording.stop();
       setRecording(null);
       setIsMicClicked(false);
-      console.log('ARISvoiceAPI response:1');
-      try {
-        const audioBlob = await getAudioBlob(recording); // Assuming this function gets the Blob data correctly
-        if (audioBlob) {
-          console.log('ARISvoiceAPI response:2', audioBlob);
-          const formData = new FormData();
-          formData.append('audio_file', audioBlob, 'audio.wav'); // Appending the audio Blob with the file name
-          
-          const url = `http://localhost:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`;
-          const response = await axios.post(url, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'accept': 'application/json'
-            }
-          });
-  
-          console.log('ARISvoiceAPI response:', response.data);
-        }
-      } catch (error) {
-        console.log('ARISvoiceAPI response:4');
-        console.error('Error handling audio:', error);
-      }
-    }
-  };
-  
-  const getAudioBlob = (recordedData: ArrayBuffer): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      if (recordedData) {
-        const audioBlob = new Blob([recordedData], { type: 'audio/wav' });
-        resolve(audioBlob);
-      } else {
-        reject(new Error('No audio data available'));
-      }
-    });
-  };
-  
 
-  const convertBlobToBinaryFile = (blob: Blob): Promise<File> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as ArrayBuffer;
-        const binaryFile = new File([result], 'audio.wav', { type: 'audio/wav' });
-        resolve(binaryFile);
-      };
-      reader.readAsArrayBuffer(blob);
-    });
+    }
   };
 
   const handlePlay = (audioBlob: Blob) => {
@@ -262,7 +216,7 @@ const App: React.FC = () => {
     <Layout style={{ ...layoutStyle, ...{ animation: 'fadeIn 2s ease-in-out' } }} >
       <Header style={headerStyle}>
       <div>
-        <svg className="waves" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shapeRendering="auto">
+        {/* <svg className="waves" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shapeRendering="auto">
       <defs>
         <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
       </defs>
@@ -272,7 +226,7 @@ const App: React.FC = () => {
         <use xlinkHref="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" />
         <use xlinkHref="#gentle-wave" x="48" y="7" fill="#fff" />
       </g>
-    </svg>
+    </svg> */}
       </div>
         <h2>
           ARIS.AI
@@ -302,7 +256,7 @@ const App: React.FC = () => {
             <img className="pop-out-image" style={{ width: '200px', height: '200px' }} src={imageSrc1} alt="SurePeople Logo" />
           </div>
         )}
-        <div className="chat-container" style={{paddingTop:"80px"}}>
+        <div className="chat-container">
           {chatMessages.map((message, index) => (
             <div key={index} className={`message ${message.user ? 'user-message' : 'bot-message'}`}>
               {message.user && (
