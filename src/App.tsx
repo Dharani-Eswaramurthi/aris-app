@@ -80,7 +80,30 @@ const App: React.FC = () => {
       recording.stop();
       setRecording(null);
       setIsMicClicked(false);
-
+  
+      try {
+        // Convert the recorded audio blob to a FormData object
+        const formData = new FormData();
+        formData.append('audio_file', recording);
+        formData.append('History', JSON.stringify(chatMessages));
+  
+        // Send the recorded audio to the ARISvoiceAPI
+        const response = await axios.post(`http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+  
+        // Handle the API response as needed
+        console.log('ARISvoiceAPI response:', response.data.response);
+        
+        // If you want to add the bot's response to the chat after processing the audio, you can do something like this:
+        if (response.data.botResponse) {
+          addBotMessage(response.data.botResponse, response.data.botAudioBlob);
+        }
+      } catch (error) {
+        console.error('Error sending recorded audio to ARISvoiceAPI:', error);
+      }
     }
   };
 
@@ -107,6 +130,7 @@ const App: React.FC = () => {
 
       setResult(response.data.response);
       setIsSearchClicked(true);
+      addBotMessage(response.data.response, '');
       console.log('success:', response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -114,14 +138,14 @@ const App: React.FC = () => {
     }
   };
 
-  const addBotMessage = (message: string, audioBlob: Blob) => {
+  const addBotMessage = (message: string) => {
     // @ts-ignore
       setChatMessages((prevMessages) => [
         ...prevMessages,
         {
           user: '',
           bot: message,
-          audioBlob: audioBlob,
+          audioBlob: null,
           audioDuration: '10', // Update this with the actual duration when playing the audio
         },
       ]);
@@ -155,7 +179,7 @@ const App: React.FC = () => {
   };
 
   const contentStyle: React.CSSProperties = {
-    lineHeight: '50px',
+    lineHeight: '25px',
     color: '#fff',
     paddingLeft: '20px',
     paddingRight: '20px',
@@ -206,6 +230,13 @@ const App: React.FC = () => {
     width: '50%',
   };
 
+  const typingMessageStyle: React.CSSProperties = {
+    position: 'absolute',
+    bottom: '5px',
+    left: '20px',
+    color: 'gray',
+  };
+
   const waterStyle: React.CSSProperties = {
     position: 'relative',
     height: '20px', // Should match the height in the CSS
@@ -246,6 +277,12 @@ const App: React.FC = () => {
           options={[
             { value: 'Anagnostopoulos', label: 'Anagnostopoulos' },
             { value: 'Drakoulis', label: 'Drakoulis' },
+            { value: 'Flynns', label: 'Flynns' },
+            { value: 'Karoubas', label: 'Karoubas' },
+            { value: 'Lolis', label: 'Lolis' },
+            { value: 'Paul', label: 'Paul' },
+            { value: 'Stankiewicz', label: 'Stankiewicz' },
+            { value: 'Yanni', label: 'Yanni' },
             // Add other options
           ]}
         />
@@ -261,13 +298,11 @@ const App: React.FC = () => {
             <div key={index} className={`message ${message.user ? 'user-message' : 'bot-message'}`}>
               {message.user && (
                 <div className="user">
-                  <div className="message-content">{message.user}</div>
-                  <div className="message-time">{message.time}</div>
+                  <div className="message-content"> {message.user}</div>
                 </div>
               )}
               {message.bot && (
                 <div className="bot">
-                  <div className="message-time">{message.time}</div>
                   <div className="message-content">
                     {message.audioBlob ? (
                       <>
@@ -276,8 +311,10 @@ const App: React.FC = () => {
                         </button>
                         <span className="audio-duration">{message.audioDuration}</span>
                       </>
-                    ) : (
-                      message.bot
+                    ) : (<>
+                    {/* <img src={imageSrc} style={{width: '20px', height: '20px'}}/> */}
+                    {message.bot}
+                      </>
                     )}
                   </div>
                 </div>
@@ -285,11 +322,14 @@ const App: React.FC = () => {
             </div>
           ))}
         </div>
+        {isSearchClicked && (
+          <div style={typingMessageStyle}>Aris is typing...</div>
+        )}
       </Content>
       <Footer style={footerStyle}>
       <Input
           style={ButtonStyle}
-          placeholder="Enter your Prompt . . ."
+          placeholder="Ask your quey here . . ."
           value={prompt}  // Use the prompt state as the input value
           onChange={onInputChange}
           onPressEnter={handleSubmit}

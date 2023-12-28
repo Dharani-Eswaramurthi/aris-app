@@ -77,9 +77,8 @@
 }
 
 .user{
-  border-radius: 50px;
-  padding-left: 8px;
-  padding-right: 8px;
+  border-radius: 25px;
+  padding: 10px;
   border-top-right-radius: 5px;
   background-color: #d6d4d8;
   color: white;
@@ -87,10 +86,10 @@
   height: fit-content;
   word-wrap: break-word;
 }
+
 .bot {
-  border-radius: 50px;
-  padding-left: 8px;
-  padding-right: 8px;
+  border-radius: 25px;
+  padding: 15px;
   border-top-left-radius: 5px;
   background-color: #58545B;
   color: white;
