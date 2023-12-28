@@ -32,8 +32,7 @@ const App: React.FC = () => {
   const [chatMessages, setChatMessages] = useState([
     {
       user: '',
-      bot: 'Hello! How can I assist you today?',
-      time: '11:00',
+      bot: 'Hey! I am ARIS, your Personal Executive Coach. How do you want me guide you today?',
       audioBlob: null, // Add this property for voice recording
       audioDuration: '', // Add this property for voice recording duration
     },
@@ -76,12 +75,71 @@ const App: React.FC = () => {
     }
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     if (recording) {
       recording.stop();
       setRecording(null);
       setIsMicClicked(false);
+  
+      try {
+        const audioBlob = await getAudioBlob();
+        if (audioBlob) {
+          // Convert the recorded audio blob to binary file
+          const binaryFile = await convertBlobToBinaryFile(audioBlob);
+  
+          // Send the binary file to the ARISvoiceAPI
+          const formData = new FormData();
+          formData.append('audio_file', binaryFile);
+  
+          const response = await axios.post(
+            `http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+  
+          // Handle the API response as needed
+          console.log('ARISvoiceAPI response:', response.data.response);
+  
+          // If you want to add the bot's response to the chat after processing the audio, you can do something like this:
+          if (response.data.botResponse) {
+            addBotMessage(response.data.botResponse, response.data.botAudioBlob);
+          }
+        }
+      } catch (error) {
+        console.error('Error handling audio:', error);
+      }
     }
+  };
+  
+  const getAudioBlob = (): Promise<Blob | null> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as ArrayBuffer;
+        const audioBlob = new Blob([result], { type: 'audio/wav' });
+        resolve(audioBlob);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      reader.readAsArrayBuffer(audioBlob!);
+    });
+  };
+  
+  const convertBlobToBinaryFile = (blob: Blob): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as ArrayBuffer;
+        const binaryFile = new File([result], 'audio.wav', { type: 'audio/wav' });
+        resolve(binaryFile);
+      };
+      reader.readAsArrayBuffer(blob);
+    });
   };
 
   const handlePlay = (audioBlob: Blob) => {
@@ -114,20 +172,13 @@ const App: React.FC = () => {
     }
   };
 
-  const getTimeString = (): string => {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-  };
-
   const addBotMessage = (message: string, audioBlob: Blob) => {
+    // @ts-ignore
       setChatMessages((prevMessages) => [
         ...prevMessages,
         {
           user: '',
           bot: message,
-          time: getTimeString(),
           audioBlob: audioBlob,
           audioDuration: '10', // Update this with the actual duration when playing the audio
         },
@@ -136,7 +187,16 @@ const App: React.FC = () => {
 
 
   const addUserMessage = (message: string) => {
-    setChatMessages(prevMessages => [...prevMessages, { user: message, bot: '', time: getTimeString() }]);
+    // @ts-ignore
+    setChatMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        user: message,
+        bot: '',
+        audioBlob: audioBlob,
+        audioDuration: '10', // Update this with the actual duration when playing the audio
+      },
+    ]);
   };
 
   const headerStyle: React.CSSProperties = {
@@ -204,9 +264,28 @@ const App: React.FC = () => {
     width: '50%',
   };
 
+  const waterStyle: React.CSSProperties = {
+    position: 'relative',
+    height: '20px', // Should match the height in the CSS
+    overflow: 'hidden',
+  };
+
   return (
     <Layout style={{ ...layoutStyle, ...{ animation: 'fadeIn 2s ease-in-out' } }} >
       <Header style={headerStyle}>
+      <div>
+        <svg className="waves" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shapeRendering="auto">
+      <defs>
+        <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+      </defs>
+      <g className="parallax">
+        <use xlinkHref="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7)" />
+        <use xlinkHref="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.5)" />
+        <use xlinkHref="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" />
+        <use xlinkHref="#gentle-wave" x="48" y="7" fill="#fff" />
+      </g>
+    </svg>
+      </div>
         <h2>
           ARIS.AI
           <br />
