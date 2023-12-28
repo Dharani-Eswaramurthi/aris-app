@@ -13,20 +13,28 @@
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.ant-input::placeholder {
+  background-color: #58545B;
+  color: #b7b7b7; /* Replace with your preferred color value */
 }
+
+
+
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  position: relative;
+  border-radius: 50px;
+}
+
+
+
+/* .ant-select-item-option: {
+  background-color: #58545B;
+} */
 
 .App-link {
   color: #61dafb;
 }
+
 
 @keyframes App-logo-spin {
   from {
@@ -34,5 +42,92 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.user-message {
+  justify-content: flex-end;
+}
+
+.bot-message {
+  justify-content: flex-start;
+}
+
+.user,
+.bot {
+  padding: 8px;
+  border-radius: 8px;
+  background-color: #58545B;
+  color: white;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.user {
+  background-color: #1C252C;
+}
+
+
+.rotateImage {
+  animation: rotateAnimation 2s infinite linear;
+}
+
+.pop-out-container {
+  animation: popOutAnimation 0.5s ease-out;
+}
+
+@keyframes popOutAnimation {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pop-out-image {
+  animation: popOutImageAnimation 0.5s ease-out;
+}
+
+@keyframes popOutImageAnimation {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
