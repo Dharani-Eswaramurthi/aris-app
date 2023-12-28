@@ -19,6 +19,12 @@ const { Option } = Select;
 
 const { Header, Footer, Content } = Layout;
 
+interface AudioRecorderState {
+  mediaRecorder: MediaRecorder | null;
+  audioURL: string;
+  selectedProfile: string;
+}
+
 const App: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<string>('');
   const [prompt, setPrompt] = useState<string>('');
@@ -29,6 +35,8 @@ const App: React.FC = () => {
   const [recording, setRecording] = useState<MediaRecorder | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioURL, setAudioURL] = useState('');
   const [chatMessages, setChatMessages] = useState([
     {
       user: '',
@@ -53,59 +61,99 @@ const App: React.FC = () => {
     setIsInputTyped(!!inputValue.trim());
   };
 
-  const handleMic = () => {
+  const startRecording = async () => {
+    setIsMicClicked(true);
     try {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        const recorder = new MediaRecorder(stream);
-        recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) {
-            const blob = new Blob([e.data], { type: 'audio/wav' });
-            addBotMessage('Voice Message', blob);
-          }
-        };
-        recorder.onstop = () => {
-          stream.getTracks().forEach((track) => track.stop());
-        };
-        recorder.start();
-        setRecording(recorder);
-      });
-      setIsMicClicked(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      setMediaRecorder(recorder);      
+      recorder.ondataavailable = async (e) => {
+        const audioBlob = e.data;
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioURL(audioUrl);        
+        try {
+          const formData = new FormData();
+          formData.append('audio_file', audioBlob, 'audio.wav');          
+          const url = `https://3ae5-210-16-85-226.ngrok-free.app/ARISvoiceAPI?Profile_name=${selectedProfile}`;
+          const response = await axios.post(url, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'accept': 'application/json'
+            }
+          });          
+          console.log('ARISvoiceAPI response:', response.data);
+          addUserMessage(response.data.user_message);
+          addBotMessage(response.data.result.response);
+          setIsSearchClicked(true);
+        } catch (error) {
+          console.error('Error handling audio:', error);
+        }
+      };      recorder.start();
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      console.error('Error starting recording:', error);
     }
   };
 
-  const handleStop = async () => {
-    if (recording) {
-      recording.stop();
-      setRecording(null);
-      setIsMicClicked(false);
-  
-      try {
-        // Convert the recorded audio blob to a FormData object
-        const formData = new FormData();
-        formData.append('audio_file', recording);
-        formData.append('History', JSON.stringify(chatMessages));
-  
-        // Send the recorded audio to the ARISvoiceAPI
-        const response = await axios.post(`http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-  
-        // Handle the API response as needed
-        console.log('ARISvoiceAPI response:', response.data.response);
-        
-        // If you want to add the bot's response to the chat after processing the audio, you can do something like this:
-        if (response.data.botResponse) {
-          addBotMessage(response.data.botResponse, response.data.botAudioBlob);
-        }
-      } catch (error) {
-        console.error('Error sending recorded audio to ARISvoiceAPI:', error);
-      }
-    }
+  const stopRecording = () => {
+    setRecording(null);
+    setIsMicClicked(false);
+    setIsSearchClicked(false);
+    mediaRecorder.stop();
   };
+
+  // const handleMic = () => {
+  //   try {
+  //     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+  //       const recorder = new MediaRecorder(stream);
+  //       recorder.ondataavailable = (e) => {
+  //         if (e.data.size > 0) {
+  //           const blob = new Blob([e.data], { type: 'audio/wav' });
+  //           addBotMessage('Voice Message', blob);
+  //         }
+  //       };
+  //       recorder.onstop = () => {
+  //         stream.getTracks().forEach((track) => track.stop());
+  //       };
+  //       recorder.start();
+  //       setRecording(recorder);
+  //     });
+  //     setIsMicClicked(true);
+  //   } catch (error) {
+  //     console.error('Error accessing microphone:', error);
+  //   }
+  // };
+
+  // const handleStop = async () => {
+  //   if (recording) {
+  //     recording.stop();
+  //     setRecording(null);
+  //     setIsMicClicked(false);
+  
+  //     try {
+  //       // Convert the recorded audio blob to a FormData object
+  //       const formData = new FormData();
+  //       formData.append('audio_file', recording);
+  //       formData.append('History', JSON.stringify(chatMessages));
+  
+  //       // Send the recorded audio to the ARISvoiceAPI
+  //       const response = await axios.post(`http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`, formData, {
+  //         headers: {
+  //           'Content-Type': 'multipart/form-data',
+  //         },
+  //       });
+  
+  //       // Handle the API response as needed
+  //       console.log('ARISvoiceAPI response:', response.data.response);
+        
+  //       // If you want to add the bot's response to the chat after processing the audio, you can do something like this:
+  //       if (response.data.botResponse) {
+  //         addBotMessage(response.data.botResponse, response.data.botAudioBlob);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error sending recorded audio to ARISvoiceAPI:', error);
+  //     }
+  //   }
+  // };
 
   const handlePlay = (audioBlob: Blob) => {
     const audioUrl = URL.createObjectURL(audioBlob);
@@ -129,7 +177,6 @@ const App: React.FC = () => {
       const response = await axios.get(`http://107.22.70.97:8000/ARISmasterAPI?Profile_name=${selectedProfile}&query=${prompt}`);
 
       setResult(response.data.response);
-      setIsSearchClicked(true);
       addBotMessage(response.data.response, '');
       console.log('success:', response.data);
     } catch (error) {
@@ -184,7 +231,6 @@ const App: React.FC = () => {
     paddingLeft: '20px',
     paddingRight: '20px',
     overflowY: 'auto',
-    overflowX: 'auto',
     maxHeight: 'calc(100vh - 64px)',
   };
 
@@ -232,16 +278,15 @@ const App: React.FC = () => {
 
   const typingMessageStyle: React.CSSProperties = {
     position: 'absolute',
-    bottom: '5px',
+    bottom: '110px',
+    paddingLeft: '20px',
     left: '20px',
-    color: 'gray',
+    color: 'white',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    animation: 'typewriter 5s steps(40) 1s infinite',
   };
 
-  const waterStyle: React.CSSProperties = {
-    position: 'relative',
-    height: '20px', // Should match the height in the CSS
-    overflow: 'hidden',
-  };
 
   return (
     <Layout style={{ ...layoutStyle, ...{ animation: 'fadeIn 2s ease-in-out' } }} >
@@ -312,7 +357,6 @@ const App: React.FC = () => {
                         <span className="audio-duration">{message.audioDuration}</span>
                       </>
                     ) : (<>
-                    {/* <img src={imageSrc} style={{width: '20px', height: '20px'}}/> */}
                     {message.bot}
                       </>
                     )}
@@ -322,8 +366,12 @@ const App: React.FC = () => {
             </div>
           ))}
         </div>
-        {isSearchClicked && (
+        {!isSearchClicked && (
+          <>
+          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <img className='rotateImage' src={imageSrc} alt="Aris Typing Image" style={{ width: '100px', height: '100px' }} /></div>
           <div style={typingMessageStyle}>Aris is typing...</div>
+          </>
         )}
       </Content>
       <Footer style={footerStyle}>
@@ -337,13 +385,13 @@ const App: React.FC = () => {
         {!isMicClicked ? (<Button
           icon={<FontAwesomeIcon icon={faHeadphones} />}
           style={voiceButton}
-          onClick={handleMic}
+          onClick={startRecording}
         />) : 
         (
           <Button
           icon={<FontAwesomeIcon icon={faStop} />}
           style={voiceButton}
-          onClick={handleStop}/>
+          onClick={stopRecording}/>
         )
         }
         

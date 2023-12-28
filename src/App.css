@@ -87,6 +87,15 @@
   word-wrap: break-word;
 }
 
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 .bot {
   border-radius: 25px;
   padding: 15px;
