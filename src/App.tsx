@@ -39,10 +39,6 @@ const App: React.FC = () => {
       user: '',
       bot: 'Hey! I am ARIS, your Personal Life Coach. How do you want me guide you today?',
     },
-    {
-      user: '',
-      bot: 'hello',
-    }
   ]);
 
   const onChange = (value: string) => {
@@ -96,7 +92,7 @@ const App: React.FC = () => {
   const stopRecording = () => {
     setIsMicClicked(false);
     setIsSearchClicked(false);
-    mediaRecorder.stop();
+    mediaRecorder?.stop();
   };
 
   const handlePlay = async (text: string, voiceType: string) => {
