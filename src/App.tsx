@@ -7,7 +7,7 @@ import lottie from "lottie-web";
 import { defineElement } from "@lordicon/element";
 
 //@ts-ignore
-import userImg from './user-img.png';
+import userImg from './images/user-img.png';
 
 // define "lord-icon" custom element with default properties
 
@@ -15,9 +15,9 @@ import userImg from './user-img.png';
 import './App.css';
 
 //@ts-ignore
-import imageSrc from './aris-logo-cut.png';
+import imageSrc from './images/aris-logo-cut.png';
 //@ts-ignore
-import imageSrc1 from './SVKl.gif'
+import imageSrc1 from './images/SVKl.gif'
 
 defineElement(lottie.loadAnimation);
 
