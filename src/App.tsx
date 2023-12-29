@@ -69,12 +69,7 @@ const App: React.FC = () => {
           const formData = new FormData();
           formData.append('audio_file', audioBlob, 'audio.wav');          
           const url = `http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`;
-          const response = await axios.post(url, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'accept': 'application/json'
-            }
-          });          
+          const response = await axios.post(url, formData);          
           console.log('ARISvoiceAPI response:', response.data);
           addUserMessage(response.data.user_message);
           addBotMessage(response.data.result.response);
