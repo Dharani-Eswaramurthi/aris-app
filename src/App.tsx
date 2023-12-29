@@ -68,7 +68,7 @@ const App: React.FC = () => {
         try {
           const formData = new FormData();
           formData.append('audio_file', audioBlob, 'audio.wav');          
-          const url = `http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`;
+          const url = `https://a799-210-16-85-226.ngrok-free.app/ARISvoiceAPI?Profile_name=${selectedProfile}`;
           const response = await axios.post(url, formData);          
           console.log('ARISvoiceAPI response:', response.data);
           addUserMessage(response.data.user_message);
@@ -141,7 +141,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const response = await axios.get(`http://107.22.70.97:8000/ARISmasterAPI?Profile_name=${selectedProfile}&query=${prompt}`);
+      const response = await axios.get(`https://a799-210-16-85-226.ngrok-free.app/ARISmasterAPI?Profile_name=${selectedProfile}&query=${prompt}`);
 
       addBotMessage(response.data.response);
       setIsSearchClicked(true);
