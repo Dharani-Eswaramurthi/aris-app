@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Input, Button, Select } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeadphones, faStop } from '@fortawesome/free-solid-svg-icons';
+import { faHeadphones, faStop, faMicrophone } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import lottie from "lottie-web";
 import { defineElement } from "@lordicon/element";
@@ -31,11 +31,9 @@ const App: React.FC = () => {
   const [isMicClicked, setIsMicClicked] = useState<boolean>(false);
   const [Playing, setIsPlaying] = useState<boolean>(false);
   const [profileSelected, setProfileSelected] = useState<boolean>(true);
-  //@ts-ignore
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [voiceType, setVoiceType] = useState('echo');
-  //@ts-ignore
-  const [audio, setAudio] = useState<HTMLAudioElement>(null);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [chatMessages, setChatMessages] = useState([
     {
       user: '',
@@ -299,8 +297,16 @@ const App: React.FC = () => {
         />
         <Select
       defaultValue="echo"
-      style={{ width: 100 }}
+      style={{ width: 100, marginLeft: '10px' }}
       onChange={(value) => setVoiceType(value)}
+      suffixIcon={
+        //@ts-ignore
+      <lord-icon
+        src="https://cdn.lordicon.com/bgebyztw.json"
+        trigger="loop"
+        state="hover-looking-around"
+        colors='primary:#ffffff,secondary:#e4e4e4'
+        style={{ width: '25px', height: '25px' }}/>}
       options={[
         { value: 'echo', label: 'echo' },
         { value: 'alloy', label: 'alloy' },
