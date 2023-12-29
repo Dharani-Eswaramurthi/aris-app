@@ -92,7 +92,7 @@ const App: React.FC = () => {
   const stopRecording = () => {
     setIsMicClicked(false);
     setIsSearchClicked(false);
-    mediaRecorder?.stop();
+    mediaRecorder.stop();
   };
 
   const handlePlay = async (text: string, voiceType: string) => {
