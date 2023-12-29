@@ -68,7 +68,7 @@ const App: React.FC = () => {
         try {
           const formData = new FormData();
           formData.append('audio_file', audioBlob, 'audio.wav');          
-          const url = `https://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`;
+          const url = `http://107.22.70.97:8000/ARISvoiceAPI?Profile_name=${selectedProfile}`;
           const response = await axios.post(url, formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
@@ -92,7 +92,8 @@ const App: React.FC = () => {
   const stopRecording = () => {
     setIsMicClicked(false);
     setIsSearchClicked(false);
-    mediaRecorder.stop();
+    mediaRecorder?.stop();
+    console.log('stop recording', mediaRecorder);
   };
 
   const handlePlay = async (text: string, voiceType: string) => {
